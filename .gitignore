@@ -18,3 +18,4 @@ Thumbs.db
 npm-debug.log
 /node_modules/
 start-server.bat
+templogfile.txt
