@@ -1,0 +1,20 @@
+# OS generated files #
+######################
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files #
+######################
+/.settings/
+
+# project build files #
+######################
+/build/
+npm-debug.log
+/node_modules/
+start-server.bat
