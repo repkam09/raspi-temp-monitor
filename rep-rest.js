@@ -10,6 +10,8 @@ var prefix = 'repserv';
 
 server.use(restify.acceptParser(server.acceptable));
 server.use(restify.queryParser());
+server.use(restify.CORS());
+server.use(restify.fullResponse());
 server.use(restify.bodyParser());
 
 // Handles the configuration values for the tempmon service
