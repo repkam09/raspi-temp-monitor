@@ -44,10 +44,12 @@ server.get(prefix + '/tempmon/:temp', function (req, res, next) {
 });
 
 // Handles acting as a proxy for GET requests
-server.get(prefix + '/corsget/:url', function (req, res, next) {
-    var geturl = atob(req.params.url);
+server.get(prefix + '/corsget/:url', function (req, resMain, next) {
+    var geturl = new Buffer(req.params.url, 'base64');
+    console.log(req.params.url +  " ==> " + geturl);
     http.get(geturl, function (res) {
-        res.send(res);
+	console.log("Got Response: " + res);
+        resMain.send(res);
     }).on('error', function (e) {
         console.log(req.params.url + " error: " + e.message);
     });
