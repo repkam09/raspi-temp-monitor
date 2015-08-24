@@ -47,15 +47,13 @@ server.get(prefix + '/tempmon/:temp', function (req, res, next) {
 server.get(prefix + '/corsget/:url', function (req, resMain, next) {
     var geturl = new Buffer(req.params.url, 'base64').toString();
     console.log(req.params.url + " ==> " + geturl);
-    try {
-        request.get(geturl).on('response', function (response) {
-            console.log("    " + response.statusCode)
-        }).pipe(resMain);
-        return next();
-    } catch (error) {
-        console.log("error:" + error);
-    }
-    
+    request(geturl, function (error, response, body) {
+        if (error) {
+            resMain.send(500, error);
+        }
+        
+        resMain.send(body);
+    });
     return next();
 });
 
