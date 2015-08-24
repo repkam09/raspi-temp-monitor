@@ -51,9 +51,12 @@ server.get(prefix + '/corsget/:url', function (req, resMain, next) {
         request.get(geturl).on('response', function (response) {
             console.log("    " + response.statusCode)
         }).pipe(resMain);
+        return next();
     } catch (error) {
         console.log("error:" + error);
     }
+    
+    return next();
 });
 
 server.get(prefix + '/logging/:log', function (req, res, next) {
