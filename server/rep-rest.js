@@ -52,7 +52,8 @@ server.get(prefix + '/corsget/:url', function (req, resMain, next) {
             resMain.send(500, error);
         }
         
-        resMain.send(body);
+        var newbody = new Buffer(body).toString('base64');
+        resMain.send(newbody);
     });
     return next();
 });
