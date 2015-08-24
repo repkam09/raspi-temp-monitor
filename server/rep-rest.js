@@ -46,15 +46,31 @@ server.get(prefix + '/tempmon/:temp', function (req, res, next) {
 // Handles acting as a proxy for GET requests
 server.get(prefix + '/corsget/:url', function (req, resMain, next) {
     var geturl = new Buffer(req.params.url, 'base64');
-    console.log(req.params.url +  " ==> " + geturl);
-    http.get(geturl, function (res) {
-	console.log("Got Response: " + res);
-        resMain.send(res);
+    console.log(req.params.url + " ==> " + geturl);
+
+    var options = {
+        host: geturl,
+        method: 'GET'
+    };
+
+    http.get(options, function (res) {
+        console.log(geturl + ": " + res.statusCode);
+
+        var body = '';
+
+        res.on("data", function (chunk) {
+            body += chunk;
+        });
+
+        res.on("end", function () {
+            resMain.send(body);
+        });
+
     }).on('error', function (e) {
-        console.log(req.params.url + ", Error:" + e.message);     
-        resMain.send(500, {Error: true, message: e.message, request: req.params.url});
+        console.log(req.params.url + ", Error:" + e.message);
+        resMain.send(500, { Error: true, message: e.message, request: req.params.url });
     });
-    
+
     return next();
 });
 
