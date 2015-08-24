@@ -53,6 +53,7 @@ server.get(prefix + '/corsget/:url', function (req, resMain, next) {
         }
         
         var newbody = new Buffer(body).toString('base64');
+	resMain.setHeader('content-type', 'text/plain');
         resMain.send(newbody);
     });
     return next();
