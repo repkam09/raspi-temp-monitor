@@ -52,9 +52,25 @@ server.get(prefix + '/corsget/:url', function (req, resMain, next) {
             resMain.send(500, error);
         }
         
-        var newbody = new Buffer(body).toString('base64');
-	resMain.setHeader('content-type', 'text/plain');
-        resMain.send(newbody);
+        var typestring = response.headers["content-type"].split(";")[0];
+        switch (typestring) {
+            case "image/jpeg":
+                console.log("got jpeg image: ", geturl);
+                resMain.setHeader('content-type', 'image/jpeg');
+                resMain.send(body);
+                break;
+                            
+            case "image/png":
+                console.log("got png image: ", geturl);
+                resMain.setHeader('content-type', 'image/png');
+                resMain.send(body);
+                break;
+            
+            default:
+                resMain.setHeader('content-type', 'text/plain');
+                var newbody = new Buffer(body).toString('base64');
+                resMain.send(newbody);
+        }        
     });
     return next();
 });
