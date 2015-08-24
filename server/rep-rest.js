@@ -51,7 +51,8 @@ server.get(prefix + '/corsget/:url', function (req, resMain, next) {
 	console.log("Got Response: " + res);
         resMain.send(res);
     }).on('error', function (e) {
-        console.log(req.params.url + " error: " + e.message);
+        console.log(req.params.url + ", Error:" + e.message);     
+        resMain.send(500, {Error: true, message: e.message, request: req.params.url});
     });
     
     return next();
