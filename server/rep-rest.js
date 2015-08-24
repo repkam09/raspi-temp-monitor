@@ -47,9 +47,14 @@ server.get(prefix + '/tempmon/:temp', function (req, res, next) {
 server.get(prefix + '/corsget/:url', function (req, resMain, next) {
     var geturl = new Buffer(req.params.url, 'base64').toString();
     console.log(req.params.url + " ==> " + geturl);
-    request.get(geturl).pipe(resMain);
+    try {
+        request.get(geturl).on('response', function (response) {
+            console.log("    " + response.statusCode)
+        }).pipe(resMain);
+    } catch (error) {
+        console.log("error:" + error);
+    }
 });
-
 
 server.get(prefix + '/logging/:log', function (req, res, next) {
     var response = {};
