@@ -49,29 +49,31 @@ server.get(prefix + '/corsget/:url', function (req, resMain, next) {
     console.log(req.params.url + " ==> " + geturl);
 
     var options = {
-        host: geturl,
-        method: 'GET'
+        host: geturl
     };
-
-    http.get(options, function (res) {
+    
+    console.log('Start GET request to ' + geturl);
+    var getreq = http.get(options, function (res) {
         console.log(geturl + ": " + res.statusCode);
 
         var body = '';
 
         res.on("data", function (chunk) {
+	    console.log('    chunk: ' + chunk);
             body += chunk;
         });
 
         res.on("end", function () {
+	    console.log('    end.');
             resMain.send(body);
+	    return next();
         });
 
     }).on('error', function (e) {
         console.log(req.params.url + ", Error:" + e.message);
         resMain.send(500, { Error: true, message: e.message, request: req.params.url });
+	return next();
     });
-
-    return next();
 });
 
 
