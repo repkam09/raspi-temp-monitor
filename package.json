@@ -1,0 +1,29 @@
+{
+  "name": "raspi-temp-monitor",
+  "version": "0.1.0",
+  "description": "reactjs view for temp monitor",
+  "main": "app.js",
+  "dependencies": {
+    "chart.js": "^1.0.2",
+    "flux": "^2.0.3",
+    "react": "^0.13.3",
+    "react-chartjs": "^0.6.0"
+  },
+  "devDependencies": {
+    "browserify": "^10.2.4",
+    "gulp": "^3.9.0",
+    "gulp-rename": "^1.2.2",
+    "reactify": "^1.1.0",
+    "vinyl-buffer": "^1.0.0",
+    "vinyl-source-stream": "^1.1.0"
+  },
+  "scripts": {
+    "build": "gulp",
+    "clean": "rm -rf ./build"
+  },
+  "repository": {
+    "type": "git"
+  },
+  "author": "Mark R. Repka",
+  "license": "MIT"
+}
