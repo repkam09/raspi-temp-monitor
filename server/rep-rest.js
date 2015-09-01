@@ -9,6 +9,8 @@ var server = restify.createServer({
 
 var prefix = 'repserv';
 
+var timerfunc = null;
+
 server.use(restify.acceptParser(server.acceptable));
 server.use(restify.queryParser());
 server.use(restify.CORS());
@@ -17,12 +19,12 @@ server.use(restify.bodyParser());
 
 // Handles the configuration values for the tempmon service
 server.get(prefix + '/tempmon/config', function (req, res, next) {
-  
+
     // Create a new response object
     var response = {};
     response.reqtime = 6;
-    response.emailarray = ['mark@repkam09.com', 'repkam09@gmail.com'];  
-  
+    response.emailarray = ['mark@repkam09.com', 'repkam09@gmail.com'];
+
     // Send the response to the client
     res.send(response);
     return next();
@@ -30,16 +32,24 @@ server.get(prefix + '/tempmon/config', function (req, res, next) {
 
 // Handles recording the temp value and timestamp for the tempmon service
 server.get(prefix + '/tempmon/:temp', function (req, res, next) {
+    clearTimeout(timerfunc); // clear the timer, we got something from the client.
+
     var response = {};
     response.date = new Date().getTime();
     response.temp = req.params.temp
 
     // Write the results to a text file
     var fileString = response.date + " | " + response.temp;
-    logfileout(fileString, "templogfile.txt");  
+    logfileout(fileString, "templogfile.txt");
 
     // Send the response to the client
     res.send(response);
+
+    // restart the timer to wait until the next checkin
+    timerfunc = setTimeout(function () {
+        serverTempTimeout();
+    }, 180 * 1000);
+
     return next();
 });
 
@@ -51,7 +61,7 @@ server.get(prefix + '/corsget/:url', function (req, resMain, next) {
         if (error) {
             resMain.send(500, error);
         }
-        
+
         var typestring = response.headers["content-type"].split(";")[0];
         switch (typestring) {
             case "image/jpeg":
@@ -59,18 +69,18 @@ server.get(prefix + '/corsget/:url', function (req, resMain, next) {
                 resMain.setHeader('content-type', 'image/jpeg');
                 resMain.send(body);
                 break;
-                            
+
             case "image/png":
                 console.log("got png image: ", geturl);
                 resMain.setHeader('content-type', 'image/png');
                 resMain.send(body);
                 break;
-            
+
             default:
                 resMain.setHeader('content-type', 'text/plain');
                 var newbody = new Buffer(body).toString('base64');
                 resMain.send(newbody);
-        }        
+        }
     });
     return next();
 });
@@ -81,7 +91,7 @@ server.get(prefix + '/logging/:log', function (req, res, next) {
     response.msg = "OK";
 
     // Write the results to a text file
-    logfileout(req.params.log, "loglogfile.txt");  
+    logfileout(req.params.log, "loglogfile.txt");
 
     // Send the response to the client
     res.send(response);
@@ -102,4 +112,9 @@ function logfileout(message, filename) {
             console.log(err);
         }
     });
+}
+
+
+function serverTempTimeout() {
+    console.log("Did not get a response from server in 3 minutes!");
 }
