@@ -1,6 +1,17 @@
 var restify = require('restify');
 var fs = require('fs');
 var request = require('request');
+var nodemailer = require('nodemailer');
+
+// create reusable transporter object using SMTP transport
+var transporter = nodemailer.createTransport({
+    service: 'Gmail',
+    auth: {
+        user: 'username',
+        pass: 'pass'
+    }
+});
+
 
 var server = restify.createServer({
     name: 'repkam09.com',
@@ -8,6 +19,7 @@ var server = restify.createServer({
 });
 
 var prefix = 'repserv';
+var threshold = 73;
 
 var timerfunc = null;
 
@@ -37,6 +49,10 @@ server.get(prefix + '/tempmon/:temp', function (req, res, next) {
     var response = {};
     response.date = new Date().getTime();
     response.temp = req.params.temp
+
+    if (response.temp < threshold) {
+        handleColdTemp(response.temp);
+    }
 
     // Write the results to a text file
     var fileString = response.date + " | " + response.temp;
@@ -114,7 +130,43 @@ function logfileout(message, filename) {
     });
 }
 
-
 function serverTempTimeout() {
-    console.log("Did not get a response from server in 3 minutes!");
+    var powerInternetMail = {
+        from: 'Temp Monitor <raspitempmon@gmail.com>', // sender address
+        to: 'repkam09@gmail.com', // list of receivers
+        subject: 'Possible Power/Internet Failure - pitempmon', // Subject line
+        text: 'Hello! \
+        This is an alert that the tempreature monitoring system has \
+        missed a status report. This might mean that the system cannt \
+        access the internet or has powered off unexpectedly'
+    };
+
+    sendMailMessage(powerInternetMail);
+}
+
+function handleColdTemp(temp) {
+    var coldMail = {
+        from: 'Temp Monitor <raspitempmon@gmail.com>', // sender address
+        to: 'repkam09@gmail.com', // list of receivers
+        subject: 'Cold Temp Alert - pitempmon', // Subject line
+        text: 'Hello! \
+        This is an alert that the current temp recorded by the \
+        tempreature monitoring system was ' + temp + '.\
+        This is below the accepted threshold of' + threshold + '\
+        Please verify that this reading is correct!'
+    };
+
+    sendMailMessage(coldMail);
+}
+
+
+
+function sendMailMessage(options) {
+    transporter.sendMail(options, function (error, info) {
+        if (error) {
+            console.log(error);
+        } else {
+            console.log('Message sent: ' + info.response);
+        }
+    });
 }
