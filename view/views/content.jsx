@@ -14,6 +14,7 @@ var ContentView = React.createClass({
 	 */
     componentDidMount: function() {
         log.verbose('content.jsx - componentDidMount');
+        updateChart();
 
         var chart = {
             labels: ["1441071006419", "1441071546125", "1441074607174", "1441076406619", "1441078207325", "1441080006740", "1441081806348"],
@@ -29,7 +30,7 @@ var ContentView = React.createClass({
             }]
         };
 
-        this.setState({chart: chart});
+        //this.setState({chart: chart});
     },
 
 	/**
@@ -59,5 +60,20 @@ var ContentView = React.createClass({
     	);
     }
 });
+
+function updateChart() {
+    var url = "https://repkam09.com/tools/raspi-temp-monitor/templogfile.txt";
+    var xmlhttp = new XMLHttpRequest();
+
+    xmlhttp.onreadystatechange = function() {
+        if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+            var file = xmlhttp.responseText;
+            debugger;
+        }
+    }
+
+    xmlhttp.open("GET", url, true);
+    xmlhttp.send();
+}
 
 module.exports = ContentView;
