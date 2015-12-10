@@ -3,12 +3,21 @@ var fs = require('fs');
 var request = require('request');
 var nodemailer = require('nodemailer');
 
+var settings = JSON.parse(fs.readFileSync('config.json', 'utf8'));
+if (settings.emailuser) {
+    console.log("Starting as " + settings.emailuser);
+}
+
+if (settings.emailpass) {
+    console.log("Got a password in config file");
+}
+
 // create reusable transporter object using SMTP transport
 var transporter = nodemailer.createTransport({
     service: 'Gmail',
     auth: {
-        user: 'username',
-        pass: 'pass'
+        user: settings.emailuser,
+        pass: settings.emailpass
     }
 });
 
@@ -19,7 +28,9 @@ var server = restify.createServer({
 });
 
 var prefix = 'repserv';
-var threshold = 73;
+var threshold = 45;
+var timertime = 2700000;
+var errormode = false;
 
 var timerfunc = null;
 
@@ -29,27 +40,22 @@ server.use(restify.CORS());
 server.use(restify.fullResponse());
 server.use(restify.bodyParser());
 
-// Handles the configuration values for the tempmon service
-server.get(prefix + '/tempmon/config', function (req, res, next) {
-
-    // Create a new response object
-    var response = {};
-    response.reqtime = 6;
-    response.emailarray = ['mark@repkam09.com', 'repkam09@gmail.com'];
-
-    // Send the response to the client
-    res.send(response);
-    return next();
-});
-
 // Handles recording the temp value and timestamp for the tempmon service
 server.get(prefix + '/tempmon/:temp', function (req, res, next) {
+    console.log("Got message from client! Clear temp timer.");
     clearTimeout(timerfunc); // clear the timer, we got something from the client.
 
-    var response = {};
-    response.date = new Date().getTime();
-    response.temp = req.params.temp
+    // If we get this call, but we're in errormode, the system got a message
+    // after a previous failure.
+    if (errormode) {
+        errorResolved();
+    }
 
+    var response = {};
+    response.date = Date.now();
+    response.temp = req.params.temp;
+
+    // Check if the temp is under our threshold and warn us!
     if (response.temp < threshold) {
         handleColdTemp(response.temp);
     }
@@ -62,58 +68,13 @@ server.get(prefix + '/tempmon/:temp', function (req, res, next) {
     res.send(response);
 
     // restart the timer to wait until the next checkin
+    console.log("Starting timer to wait for client checkin...");
     timerfunc = setTimeout(function () {
         serverTempTimeout();
-    }, 180 * 1000);
+    }, timertime);
 
     return next();
 });
-
-// Handles acting as a proxy for GET requests
-server.get(prefix + '/corsget/:url', function (req, resMain, next) {
-    var geturl = new Buffer(req.params.url, 'base64').toString();
-    console.log(req.params.url + " ==> " + geturl);
-    request(geturl, function (error, response, body) {
-        if (error) {
-            resMain.send(500, error);
-        }
-
-        var typestring = response.headers["content-type"].split(";")[0];
-        switch (typestring) {
-            case "image/jpeg":
-                console.log("got jpeg image: ", geturl);
-                resMain.setHeader('content-type', 'image/jpeg');
-                resMain.send(body);
-                break;
-
-            case "image/png":
-                console.log("got png image: ", geturl);
-                resMain.setHeader('content-type', 'image/png');
-                resMain.send(body);
-                break;
-
-            default:
-                resMain.setHeader('content-type', 'text/plain');
-                var newbody = new Buffer(body).toString('base64');
-                resMain.send(newbody);
-        }
-    });
-    return next();
-});
-
-server.get(prefix + '/logging/:log', function (req, res, next) {
-    var response = {};
-    response.status = '200';
-    response.msg = "OK";
-
-    // Write the results to a text file
-    logfileout(req.params.log, "loglogfile.txt");
-
-    // Send the response to the client
-    res.send(response);
-    return next();
-});
-
 
 // Start the server:
 server.listen(16000, function () {
@@ -123,43 +84,62 @@ server.listen(16000, function () {
 
 // Helper function to write to a file
 function logfileout(message, filename) {
-    fs.appendFile(filename, message + '\r\n', function (err) {
+    console.log("logfileout: " + filename + ":" + message);
+    fs.appendFile('/home/mark/website/tools/raspi-temp-monitor/' + filename, message + '\r\n', function (err) {
         if (err) {
             console.log(err);
         }
     });
 }
 
+var emailstring = settings.emailstringrep;
+console.log("Send alerts to: " + emailstring);
+
 function serverTempTimeout() {
+    console.log("Error: client timeout passed");
+    errormode = true;
+    var currentTime = new Date();
+
     var powerInternetMail = {
         from: 'Temp Monitor <raspitempmon@gmail.com>', // sender address
-        to: 'repkam09@gmail.com', // list of receivers
-        subject: 'Possible Power/Internet Failure - pitempmon', // Subject line
-        text: 'Hello! \
-        This is an alert that the tempreature monitoring system has \
-        missed a status report. This might mean that the system cannt \
-        access the internet or has powered off unexpectedly'
+        to: settings.emailstring, // list of receivers
+        subject: 'Possible Power or Internet Failure - pitempmon - ' + currentTime, // Subject line
+        text: 'Hello! \nThis is an alert that the tempreature monitoring system has missed a status report.\nThis might mean that the system cannot access the internet or has powered off unexpectedly'
     };
 
     sendMailMessage(powerInternetMail);
 }
 
 function handleColdTemp(temp) {
+    console.log("Error: Cold Temp - " + temp);
+    errormode = true;
+    var currentTime = new Date();
+
     var coldMail = {
         from: 'Temp Monitor <raspitempmon@gmail.com>', // sender address
-        to: 'repkam09@gmail.com', // list of receivers
-        subject: 'Cold Temp Alert - pitempmon', // Subject line
-        text: 'Hello! \
-        This is an alert that the current temp recorded by the \
-        tempreature monitoring system was ' + temp + '.\
-        This is below the accepted threshold of' + threshold + '\
-        Please verify that this reading is correct!'
+        to: emailstring, // list of receivers
+        subject: 'Cold Temp Alert - pitempmon - ' + currentTime, // Subject line
+        text: 'Hello! \nThis is an alert that the current temp recorded by the tempreature monitoring system was ' + temp + '.\nThis is below the accepted threshold of ' + threshold + '\n\nPlease verify that this reading is correct!'
     };
 
     sendMailMessage(coldMail);
 }
 
 
+function errorResolved() {
+    console.log("Error Resolved - Client Checkin");
+    errormode = false;
+    var currentTime = new Date();
+
+    var resolvedMail = {
+        from: 'Temp Monitor <raspitempmon@gmail.com>',
+        to: emailstring,
+        subject: "Temp Monitor Okay - pitempmon - " + currentTime,
+        text: "Hello! \nThis is a notification that the house temp monitor service is back up and running after an error. There is nothing you need to do at this time."
+    };
+
+    sendMailMessage(resolvedMail);
+}
 
 function sendMailMessage(options) {
     transporter.sendMail(options, function (error, info) {

@@ -22,3 +22,4 @@ start-server.bat
 # Project Output files
 templogfile.txt
 loglogfile.txt
+config.json
