@@ -92,7 +92,7 @@ function logfileout(message, filename) {
     });
 }
 
-var emailstring = settings.emailstringrep;
+var emailstring = settings.emailstring;
 console.log("Send alerts to: " + emailstring);
 
 function serverTempTimeout() {
@@ -102,7 +102,7 @@ function serverTempTimeout() {
 
     var powerInternetMail = {
         from: 'Temp Monitor <raspitempmon@gmail.com>', // sender address
-        to: settings.emailstring, // list of receivers
+        to: emailstring, // list of receivers
         subject: 'Possible Power or Internet Failure - pitempmon - ' + currentTime, // Subject line
         text: 'Hello! \nThis is an alert that the tempreature monitoring system has missed a status report.\nThis might mean that the system cannot access the internet or has powered off unexpectedly'
     };
