@@ -1,7 +1,10 @@
 var restify = require('restify');
 var fs = require('fs');
-var request = require('request');
 var nodemailer = require('nodemailer');
+
+// Read in the settings from config file. This hides the username/password/email list from github.
+// This must be put in a file called config.json.
+// emailuser, emailpass, emailstring values included.
 
 var settings = JSON.parse(fs.readFileSync('config.json', 'utf8'));
 
@@ -9,9 +12,10 @@ if (settings.emailuser) {
     console.log("Starting as " + settings.emailuser);
 }
 
-if (settings.emailstring) {
-    console.log("Email list is " + settings.emailstring);
-}
+// Get the list of who to email.
+var emaillist = settings.emailstring;
+
+console.log("Email list is " + emaillist);
 
 // create reusable transporter object using SMTP transport
 var transporter = nodemailer.createTransport({
@@ -71,10 +75,19 @@ function sendMailMessage(options) {
     });
 }
 
-// Send Mail Message
-console.log("Error: client timeout passed");
+function printemail(config) {
+    console.log("--------------------------");
+    console.log("From: " + config.from);
+    console.log("To: " + config.to);
+    console.log("Subject: " + config.subject);
+    console.log("Message: " + config.text);
+    console.log("--------------------------");
+}
+
+// Start the process of sending the mail message
 var currentTime = new Date();
 
+// Build the text of the message to send out
 var message =   'This is the weekly status report from the Repka RaspberryPi Tempreature Monitor system.\n' +
                 'The last check-in was ' + getLastCheckinTime() + '.\n\n' +
                 'Here are the average tempreature statistics for the last few days:\n\n' +
@@ -82,14 +95,18 @@ var message =   'This is the weekly status report from the Repka RaspberryPi Tem
                 '    * Last 2 Days: ' + getTempForLastDays(2) + '\n' +
                 '    * Last 3 Days: ' + getTempForLastDays(3) + '\n' +
                 '    * Last 4 Days: ' + getTempForLastDays(4) + '\n\n' +
-                'You can view the graph at https://repkam09.com/tools/raspi-temp-monitor/ for the latest information.';
+                'You can view the graph at https://repkam09.com/tools/raspi-temp-monitor/ for the latest information.\n' +
+                'This message is informational only. There is no action that you need to take. Have a wonderful day!\n\n';
 
+// Create the email message to send out
 var weeklyreport = {
     from: 'Temp Monitor <raspitempmon@gmail.com>', // sender address
-    to: settings.emailstring, // list of receivers
+    to: emaillist, // list of receivers
     subject: 'Weekly Report - pitempmon - ' + currentTime, // Subject line
     text: message
 };
 
-console.log("Sending weekly report message to " + settings.emailstring);
+console.log("Sending weekly report message to " + emaillist);
+
+printemail(weeklyreport);
 sendMailMessage(weeklyreport);
