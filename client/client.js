@@ -24,9 +24,24 @@ var tempcheck = function () {
 
     console.log("Temp Returned: " + JSON.stringify(temp));
 
-    var urlstring = "https://repkam09.com/repserv/tempmon/" + temp;
+    var postdata = JSON.stringify({
+        clientid: "test",
+        temp: temp
+    });
 
-    var req = https.get(urlstring, function (res) {
+    var options = {
+        hostname: 'api.repkam09.com',
+        port: 443,
+        path: '/api/temp/checkin',
+        method: 'POST',
+        headers: {
+            'Content-Type': "application/json",
+            'Content-Length': Buffer.byteLength(postdata)
+        }
+    };
+
+
+    var req = https.request(options, function (res) {
         var bodyChunks = [];
         res.on('data', function (chunk) {
             bodyChunks.push(chunk);
@@ -42,6 +57,9 @@ var tempcheck = function () {
     req.on('error', function (e) {
         console.log('Server Error: ' + e.message + JSON.stringify(e));
     });
+
+    req.write(postdata);
+    req.end();
 
 };
 
