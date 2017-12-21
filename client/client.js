@@ -2,6 +2,7 @@ var fs = require('fs');
 var https = require('https');
 
 function getTemp() {
+    //             Change this ID to your Specific ID:xx-xxxxxxxxxxxx
     var buffer = fs.readFileSync('/sys/bus/w1/devices/28-000006b4a69b/w1_slave');
 
     // Read data from file (using fast node ASCII encoding).
@@ -25,6 +26,7 @@ var tempcheck = function () {
     console.log("Temp Returned: " + JSON.stringify(temp));
 
     var postdata = JSON.stringify({
+        // Change the client ID to something unique to you
         clientid: "test",
         temp: temp
     });
