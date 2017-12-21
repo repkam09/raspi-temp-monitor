@@ -24,7 +24,6 @@ Note: You need to make TWO edits to the client.js code, see the comments
 Wiring the Sunfounder DS18B20 temperature sensor to a RPI B 1 or above.  Other DS18B20 sensors will also work, color codes may change.
 
 ![sensor image](sensor.jpg)
-Format: ![Alt Text](url) 
 
 
 Sunfounder    RPI 
@@ -33,8 +32,8 @@ black wire    ground
 yellow wire   GPIO 4
 
 
-![PI IO Pins](gpioPins.jpg)
-Format: ![Alt Text](url)
+![PI IO Pins](gpioPins.png)
+
 
 Load the Linux device drivers
 
