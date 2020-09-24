@@ -76,3 +76,5 @@ npm -v
 # Chrontab
 To be useful, the temperature monitor needs to run evey 1/2 hour.  
 Write a cron entry to run:   node client.js
+e.g  crontab -e    then enter:   */30  *  *   *   *  /usr/local/bin/node /home/pi/client.js
+
