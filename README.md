@@ -57,17 +57,18 @@ cd ~
 Get the Arm V6 binary (for a RPI B1 only) 
 wget https://nodejs.org/dist/v6.2.1/node-v6.2.1-linux-armv6l.tar.gz
 
-Extract the binary
+Extract the binary:
 tar -xzf node-v6.2.1-linux-armv6l.tar.gz
 
-Verify the binary
+Verify the binary:
 node-v6.2.1-linux-armv6l/bin/node -v
-The last command should print v6.2.1.
-Now you can copy it to /usr/local
+The last command should print: v6.2.1.
+Now you can copy it to /usr/local:
 cd node-v6.2.1-linux-armv6l/
+then copy:
 sudo cp -R * /usr/local/
 
-For testing add /usr/local/bin to your path             pi/raspberry
+For testing add: /usr/local/bin to your path             pi/raspberry
 export PATH=$PATH:/usr/local/bin
 node -v
 npm -v
