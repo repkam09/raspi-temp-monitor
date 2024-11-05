@@ -1,3 +1,5 @@
+// @ts-check
+
 var fs = require('fs');
 var https = require('https');
 
@@ -15,6 +17,7 @@ function getTemp() {
     temp = ((temp * 9 / 5) + 32);
     temp = Math.round(temp * 10) / 10;
 
+    console.log("getTemp: " + temp);
     return temp;
 };
 
@@ -24,7 +27,10 @@ function tempcheck() {
 
     while (attempts < 5 && temp === null) {
         temp = getTemp();
-        if (temp !== null) {
+
+        // We're probably sometimes getting NaN here
+        // which stringify will show as `null`
+        if (JSON.stringify(temp) !== null) {
             console.log("Temp Returned: " + JSON.stringify(temp));
             break;
         }
@@ -38,7 +44,7 @@ function tempcheck() {
 
     var postdata = JSON.stringify({
         // Change the client ID to something unique to you
-        clientid: "test",
+        clientid: "repkam09",
         temp: temp
     });
 
