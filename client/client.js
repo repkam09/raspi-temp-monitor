@@ -18,12 +18,23 @@ function getTemp() {
     return temp;
 };
 
+function tempcheck() {
+    var temp = null;
+    var attempts = 0;
 
+    while (attempts < 5 && temp === null) {
+        temp = getTemp();
+        if (temp !== null) {
+            console.log("Temp Returned: " + JSON.stringify(temp));
+            break;
+        }
+        console.log("Failed to get temperature, retrying...", attempts);
+        attempts++;
+    }
 
-var tempcheck = function () {
-    var temp = getTemp();
-
-    console.log("Temp Returned: " + JSON.stringify(temp));
+    if (temp === null) {
+        throw new Error('Failed to get temperature after 5 attempts.');
+    }
 
     var postdata = JSON.stringify({
         // Change the client ID to something unique to you
@@ -62,10 +73,6 @@ var tempcheck = function () {
 
     req.write(postdata);
     req.end();
-
-};
-
-var onFinish = function () {
 
 };
 
